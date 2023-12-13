@@ -41,6 +41,11 @@ export default class Customer extends Model {
       allowNull: false,
       defaultValue: Sequelize.Sequelize.fn('now'),
       field: 'updated_at'
+    },
+    deletedAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      field: 'deleted_at'
     }
   }, {
     sequelize,

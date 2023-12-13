@@ -1,5 +1,5 @@
-import { Sequelize } from "sequelize";
-import { Customer, Order, OrderProduct, Product } from "../models";
+import { Op } from "sequelize";
+import { Customer, Order } from "../models";
 import { ERROR_CUSTOMER_NOT_FOUND } from "../constants";
 
 export const getCustomers = async (req, res) => {
@@ -12,10 +12,17 @@ export const getCustomers = async (req, res) => {
     limit: numLimit,
     offset: numOffset,
     order: [["customerId", "ASC"]],
+    where: {
+      deletedAt: null,
+    },
   });
 
-  const total = await Customer.count();
-  const isNext = numOffset + customers.length < total;
+  const totalCustomers = await Customer.count({
+    where: {
+      deletedAt: null,
+    },
+  });
+  const isNext = numOffset + customers.length < totalCustomers;
   const isPre = numOffset > 0;
 
   const result = {
@@ -23,7 +30,7 @@ export const getCustomers = async (req, res) => {
     paging: {
       offset: numOffset,
       limit: numLimit,
-      total,
+      totalPages: Math.ceil(totalCustomers / numLimit),
       isNext,
       isPre,
     },
@@ -44,80 +51,59 @@ export const createCustomer = async (req, res) => {
 
 export const deleteCustomer = async (req, res) => {
   const { customerId } = req.params;
-  const customer = await Order.findByPk(customerId);
-  if(!customer){
-    throw new Error(ERROR_CUSTOMER_NOT_FOUND)
-  }
-  const orders = await Order.findAll({
-    where: {customerId},
-    attributes: ["orderId"],
-  });
-  //update quantity of product
-  const orderProducts = await OrderProduct.findAll({
-    where: {
-      orderId: {
-        [Sequelize.Op.in]: orders.map((item) => item.orderId)
-      }
-    },
-    attributes: ["quantity", "productId"],
-  });
-  await Promise.all(orderProducts.map(async (order) => {
-    await Product.update({
-      quantity: Sequelize.literal(`"quantity" + ${order.quantity}`),
-    }, {
-      where: { productId: order.productId },
-    });
-  }));
-  
 
-  // delete product_order
-  await OrderProduct.destroy({
-    where: {
-      orderId: {
-        [Sequelize.Op.in]: orders.map((item) => item.orderId)
-      }
-    }
-  });
-  //delete order
-  await Order.destroy({ where: {customerId} });
-  await Customer.destroy({
+  const customer = await Customer.findOne({
     where: {
       customerId,
+      deletedAt: null,
     },
   });
+  if (!customer) {
+    res.status(404);
+    throw new Error(ERROR_CUSTOMER_NOT_FOUND);
+  }
+  customer.deletedAt = Date.now();
+  await customer.save();
+
+  await Order.update(
+    { customerId: null },
+    {
+      where: {
+        customerId,
+      },
+    }
+  );
+
   return res.json({ result: true });
 };
 
 export const updateCustomer = async (req, res) => {
   const { customerId } = req.params;
-  const customer = await Order.findByPk(customerId);
-  if(!customer){
-    throw new Error(ERROR_CUSTOMER_NOT_FOUND)
+  const customer = await Customer.findOne({
+    where: {
+      customerId,
+      deletedAt: null,
+    },
+  });
+  if (!customer) {
+    res.status(404);
+    throw new Error(ERROR_CUSTOMER_NOT_FOUND);
   }
+
   const { customerName, address, phoneNumber, email } = req.body;
+  if (customerName) {
+    customer.customerName = customerName;
+  }
+  if (address) {
+    customer.address = address;
+  }
+  if (phoneNumber) {
+    customer.phoneNumber = phoneNumber;
+  }
+  if (email) {
+    customer.email = email;
+  }
+  await customer.save();
 
-  const updateObject = {};
-  if (customerName !== undefined && customerName !== null) {
-    updateObject.customerName = customerName;
-  }
-  if (address !== undefined && address !== null) {
-    updateObject.address = address;
-  }
-  if (phoneNumber !== undefined && phoneNumber !== null) {
-    updateObject.phoneNumber = phoneNumber;
-  }
-  if (email !== undefined && email !== null) {
-    updateObject.email = email;
-  }
-
-  if (Object.keys(updateObject).length > 0) {
-    await Customer.update(updateObject, {
-      where: {
-        customerId,
-      },
-    });
-
-    return res.json({ data: { result: true } });
-  }
-  return res.json({ data: { result: false } });
+  return res.json(customer);
 };
