@@ -48,10 +48,6 @@ export default class Product extends Model {
       type: DataTypes.TEXT,
       allowNull: true
     },
-    rating: {
-      type: DataTypes.DECIMAL,
-      allowNull: true
-    },
     size: {
       type: DataTypes.DECIMAL,
       allowNull: true
@@ -71,6 +67,10 @@ export default class Product extends Model {
       allowNull: false,
       defaultValue: Sequelize.Sequelize.fn('now'),
       field: 'updated_at'
+    },
+    cost: {
+      type: DataTypes.DECIMAL,
+      allowNull: true
     }
   }, {
     sequelize,
