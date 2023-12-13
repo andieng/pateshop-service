@@ -33,7 +33,7 @@ passportConfig(passport);
 // Routes
 app.use("/api/auth", authRouter);
 app.use("/api/orders", ordersRouter);
-app.use("/api/categories", productsRouter);
+app.use("/api/categories", categoriesRouter);
 app.use("/api/customers", customersRouter);
 // app.use("/api/orders", checkAuthentication, ordersRouter);
 // app.use("/api/categories", checkAuthentication, categoriesRouter);

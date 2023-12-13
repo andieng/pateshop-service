@@ -18,13 +18,41 @@ import {
 } from "../constants";
 
 export const getCategories = async (req, res) => {
-  const categories = await Category.findAll();
-  return res.json(categories);
+  const { limit, offset } = req.query;
+
+  const numLimit = limit ? Number(limit) : 100;
+  const numOffset = offset ? Number(offset) : 0;
+
+  const categories = await Category.findAll({
+    limit: numLimit,
+    offset: numOffset,
+    order: [["categoryId", "ASC"]],
+  });
+
+  const totalCategories = await Category.count();
+
+  const isNext = numOffset + categories.length < totalCategories;
+  const isPre = numOffset > 0;
+
+  const result = {
+    data: categories,
+    paging: {
+      offset: numOffset,
+      limit: numLimit,
+      totalPages: Math.ceil(totalCategories / numLimit),
+      isNext,
+      isPre,
+    },
+  };
+  return res.json(result);
 };
 
 export const getProductsOfCategory = async (req, res) => {
   const { categoryId } = req.params;
   const { limit, offset } = req.query;
+
+  const numLimit = limit ? Number(limit) : 100;
+  const numOffset = offset ? Number(offset) : 0;
 
   const category = await Category.findByPk(categoryId);
   if (!category) {
@@ -39,7 +67,24 @@ export const getProductsOfCategory = async (req, res) => {
       categoryId,
     },
   });
-  return res.json(products);
+
+  const totalProducts = await Product.count({ where: { categoryId } });
+
+  const isNext = numOffset + products.length < totalProducts;
+  const isPre = numOffset > 0;
+
+  const result = {
+    data: products,
+    paging: {
+      offset: numOffset,
+      limit: numLimit,
+      totalPages: Math.ceil(totalProducts / numLimit),
+      isNext,
+      isPre,
+    },
+  };
+
+  return res.json(result);
 };
 
 export const addCategory = async (req, res) => {
@@ -328,7 +373,10 @@ export const deleteProduct = async (req, res) => {
 
 export const searchProductsByName = async (req, res) => {
   const { categoryId } = req.params;
-  const { q } = req.query;
+  const { q, limit, offset } = req.query;
+
+  const numLimit = limit ? Number(limit) : 100;
+  const numOffset = offset ? Number(offset) : 0;
 
   const products = await Product.findAll({
     where: {
@@ -337,14 +385,39 @@ export const searchProductsByName = async (req, res) => {
         [Sequelize.Op.iLike]: `%${q}%`,
       },
     },
+    limit: numLimit,
+    offset: numOffset,
   });
 
-  return res.json(products);
+  const totalProducts = await Product.count({
+    where: {
+      categoryId,
+      productName: {
+        [Sequelize.Op.iLike]: `%${q}%`,
+      },
+    },
+  });
+
+  const isNext = numOffset + products.length < totalProducts;
+  const isPre = numOffset > 0;
+
+  const result = {
+    data: products,
+    paging: {
+      offset: numOffset,
+      limit: numLimit,
+      totalPages: Math.ceil(totalProducts / numLimit),
+      isNext,
+      isPre,
+    },
+  };
+
+  return res.json(result);
 };
 
 export const searchProductsByPriceRange = async (req, res) => {
   const { categoryId } = req.params;
-  const { startBy, endBy } = req.body;
+  const { startBy, endBy, limit, offset } = req.body;
 
   if (startBy < 0 || isNaN(startBy)) {
     throw new Error(ERROR_START_INVALID);
@@ -358,7 +431,21 @@ export const searchProductsByPriceRange = async (req, res) => {
     throw new Error(ERROR_RANGE_INVALID);
   }
 
+  const numLimit = limit ? Number(limit) : 100;
+  const numOffset = offset ? Number(offset) : 0;
+
   const products = await Product.findAll({
+    where: {
+      categoryId,
+      price: {
+        [Sequelize.Op.between]: [startBy, endBy],
+      },
+    },
+    limit: numLimit,
+    offset: numOffset,
+  });
+
+  const totalProducts = await Product.count({
     where: {
       categoryId,
       price: {
@@ -367,5 +454,19 @@ export const searchProductsByPriceRange = async (req, res) => {
     },
   });
 
-  return res.json(products);
+  const isNext = numOffset + products.length < totalProducts;
+  const isPre = numOffset > 0;
+
+  const result = {
+    data: products,
+    paging: {
+      offset: numOffset,
+      limit: numLimit,
+      totalPages: Math.ceil(totalProducts / numLimit),
+      isNext,
+      isPre,
+    },
+  };
+
+  return res.json(result);
 };

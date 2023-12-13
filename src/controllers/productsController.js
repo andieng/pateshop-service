@@ -2,12 +2,39 @@ import { Sequelize } from "sequelize";
 import { Product } from "../models";
 
 export const getProducts = async (req, res) => {
-  const product = await Product.findAll();
-  return res.json(product);
+  const { limit, offset } = req.query;
+
+  const numLimit = limit ? Number(limit) : 100;
+  const numOffset = offset ? Number(offset) : 0;
+
+  const products = await Product.findAll({
+    limit: numLimit,
+    offset: numOffset,
+  });
+
+  const totalProducts = await Product.count();
+  const isNext = numOffset + products.length < totalProducts;
+  const isPre = numOffset > 0;
+
+  const result = {
+    data: products,
+    paging: {
+      offset: numOffset,
+      limit: numLimit,
+      totalPages: Math.ceil(totalProducts / numLimit),
+      isNext,
+      isPre,
+    },
+  };
+
+  return res.json(result);
 };
 
 export const searchProductsByName = async (req, res) => {
-  const { q } = req.query;
+  const { q, limit, offset } = req.query;
+
+  const numLimit = limit ? Number(limit) : 100;
+  const numOffset = offset ? Number(offset) : 0;
 
   const products = await Product.findAll({
     where: {
@@ -15,13 +42,37 @@ export const searchProductsByName = async (req, res) => {
         [Sequelize.Op.iLike]: `%${q}%`,
       },
     },
+    limit: numLimit,
+    offset: numOffset,
   });
 
-  return res.json(products);
+  const totalProducts = await Product.count({
+    where: {
+      productName: {
+        [Sequelize.Op.iLike]: `%${q}%`,
+      },
+    },
+  });
+
+  const isNext = numOffset + products.length < totalProducts;
+  const isPre = numOffset > 0;
+
+  const result = {
+    data: products,
+    paging: {
+      offset: numOffset,
+      limit: numLimit,
+      totalPages: Math.ceil(totalProducts / numLimit),
+      isNext,
+      isPre,
+    },
+  };
+
+  return res.json(result);
 };
 
 export const searchProductsByPriceRange = async (req, res) => {
-  const { startBy, endBy } = req.body;
+  const { startBy, endBy, limit, offset } = req.body;
 
   if (startBy < 0 || isNaN(startBy)) {
     throw new Error(ERROR_START_INVALID);
@@ -35,7 +86,20 @@ export const searchProductsByPriceRange = async (req, res) => {
     throw new Error(ERROR_RANGE_INVALID);
   }
 
+  const numLimit = limit ? Number(limit) : 100;
+  const numOffset = offset ? Number(offset) : 0;
+
   const products = await Product.findAll({
+    where: {
+      price: {
+        [Sequelize.Op.between]: [startBy, endBy],
+      },
+    },
+    limit: numLimit,
+    offset: numOffset,
+  });
+
+  const totalProducts = await Product.count({
     where: {
       price: {
         [Sequelize.Op.between]: [startBy, endBy],
@@ -43,5 +107,19 @@ export const searchProductsByPriceRange = async (req, res) => {
     },
   });
 
-  return res.json(products);
+  const isNext = numOffset + products.length < totalProducts;
+  const isPre = numOffset > 0;
+
+  const result = {
+    data: products,
+    paging: {
+      offset: numOffset,
+      limit: numLimit,
+      totalPages: Math.ceil(totalProducts / numLimit),
+      isNext,
+      isPre,
+    },
+  };
+
+  return res.json(result);
 };
