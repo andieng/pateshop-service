@@ -1,12 +1,14 @@
 import express from "express";
 import {
-  getProductsOfCategory,
-  getCategories,
+  getProducts,
+  searchProductsByName,
+  searchProductsByPriceRange,
 } from "../controllers/productsController";
 
 const productsRouter = express.Router();
 
-productsRouter.get("/", getCategories);
-productsRouter.get("/:categoryId", getProductsOfCategory);
+productsRouter.get("/search", searchProductsByName);
+productsRouter.post("/search", searchProductsByPriceRange);
+productsRouter.get("/", getProducts);
 
 export default productsRouter;
