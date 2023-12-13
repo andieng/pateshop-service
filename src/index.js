@@ -9,6 +9,7 @@ import authRouter from "./routes/authRoute";
 import ordersRouter from "./routes/ordersRoute";
 import customersRouter from "./routes/customersRoute";
 import productsRouter from "./routes/productsRoute";
+import categoriesRouter from "./routes/categoriesRoute";
 import checkAuthentication from "./middlewares/checkAuthentication";
 
 const app = express();
@@ -32,7 +33,8 @@ passportConfig(passport);
 // Routes
 app.use("/api/auth", authRouter);
 app.use("/api/orders", checkAuthentication, ordersRouter);
-app.use("/api/categories", checkAuthentication, productsRouter);
+app.use("/api/categories", checkAuthentication, categoriesRouter);
+app.use("/api/products", checkAuthentication, productsRouter);
 app.use("/api/customers", checkAuthentication, customersRouter);
 
 app.get("/", (req, res) => {
