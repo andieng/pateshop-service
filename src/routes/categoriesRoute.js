@@ -28,8 +28,8 @@ categoriesRouter.post("/:categoryId/products", addProduct);
 categoriesRouter.put("/:categoryId/products/:productId", updateProduct);
 categoriesRouter.delete("/:categoryId/products/:productId", deleteProduct);
 
-categoriesRouter.post(
-  "/:categoryId/products/search",
+categoriesRouter.get(
+  "/:categoryId/products/filter",
   searchProductsByPriceRange
 );
 

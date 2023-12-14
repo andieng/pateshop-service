@@ -72,7 +72,7 @@ export const searchProductsByName = async (req, res) => {
 };
 
 export const searchProductsByPriceRange = async (req, res) => {
-  const { startBy, endBy, limit, offset } = req.body;
+  const { startBy, endBy, limit, offset } = req.query;
 
   if (startBy < 0 || isNaN(startBy)) {
     throw new Error(ERROR_START_INVALID);
