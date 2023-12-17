@@ -43,7 +43,7 @@ export const getOrders = async (req, res) => {
     paging: {
       offset: numOffset,
       limit: numLimit,
-      totalPages: Math.ceil(totalOrders / numLimit),
+      totalPages: numLimit === 0 ? 0 : Math.ceil(totalOrders / numLimit),
       isNext,
       isPre,
     },

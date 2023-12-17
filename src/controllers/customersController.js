@@ -30,7 +30,7 @@ export const getCustomers = async (req, res) => {
     paging: {
       offset: numOffset,
       limit: numLimit,
-      totalPages: Math.ceil(totalCustomers / numLimit),
+      totalPages: numLimit === 0 ? 0 : Math.ceil(totalCustomers / numLimit),
       isNext,
       isPre,
     },

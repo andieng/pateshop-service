@@ -21,7 +21,7 @@ export const getProducts = async (req, res) => {
     paging: {
       offset: numOffset,
       limit: numLimit,
-      totalPages: Math.ceil(totalProducts / numLimit),
+      totalPages: numLimit === 0 ? 0 : Math.ceil(totalProducts / numLimit),
       isNext,
       isPre,
     },
@@ -62,7 +62,7 @@ export const searchProductsByName = async (req, res) => {
     paging: {
       offset: numOffset,
       limit: numLimit,
-      totalPages: Math.ceil(totalProducts / numLimit),
+      totalPages: numLimit === 0 ? 0 : Math.ceil(totalProducts / numLimit),
       isNext,
       isPre,
     },
@@ -115,7 +115,7 @@ export const searchProductsByPriceRange = async (req, res) => {
     paging: {
       offset: numOffset,
       limit: numLimit,
-      totalPages: Math.ceil(totalProducts / numLimit),
+      totalPages: numLimit === 0 ? 0 : Math.ceil(totalProducts / numLimit),
       isNext,
       isPre,
     },
