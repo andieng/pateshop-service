@@ -10,7 +10,17 @@ import ordersRouter from "./routes/ordersRoute";
 import customersRouter from "./routes/customersRoute";
 import productsRouter from "./routes/productsRoute";
 import categoriesRouter from "./routes/categoriesRoute";
+import { ERROR_FAILED_CONNECTION, MSG_DATABASE_CONNECTED } from "./constants";
+import checkConnection from "./middlewares/checkConnection";
 import checkAuthentication from "./middlewares/checkAuthentication";
+import {
+  initializeConnection,
+  isConnected,
+  currentHost,
+  currentDatabase,
+  currentUser,
+  currentPassword,
+} from "./models";
 
 const app = express();
 
@@ -25,23 +35,54 @@ app.use(
     saveUninitialized: false,
   })
 );
-
 app.use(passport.initialize());
 app.use(passport.session());
 passportConfig(passport);
 
 // Routes
-app.use("/api/auth", authRouter);
-app.use("/api/orders", ordersRouter);
-app.use("/api/categories", categoriesRouter);
-app.use("/api/customers", customersRouter);
-// app.use("/api/orders", checkAuthentication, ordersRouter);
-// app.use("/api/categories", checkAuthentication, categoriesRouter);
-app.use("/api/products", checkAuthentication, productsRouter);
-// app.use("/api/customers", checkAuthentication, customersRouter);
+app.use("/api/auth", checkConnection, authRouter);
+app.use("/api/orders", checkConnection, checkAuthentication, ordersRouter);
+app.use(
+  "/api/categories",
+  checkConnection,
+  checkAuthentication,
+  categoriesRouter
+);
+app.use(
+  "/api/customers",
+  checkConnection,
+  checkAuthentication,
+  customersRouter
+);
+app.use("/api/products", checkConnection, checkAuthentication, productsRouter);
+
+app.post("/api/connect", async (req, res) => {
+  const { pgServer, pgDatabase, pgUsername, pgPassword } = req.body;
+  if (
+    !isConnected ||
+    currentHost !== pgServer ||
+    currentDatabase !== pgDatabase ||
+    currentUser !== pgUsername ||
+    currentPassword !== pgPassword
+  ) {
+    if (
+      !(await initializeConnection(
+        pgServer,
+        pgDatabase,
+        pgUsername,
+        pgPassword
+      ))
+    ) {
+      res.status(400);
+      throw new Error(ERROR_FAILED_CONNECTION);
+    }
+  }
+
+  return res.status(200).json({ message: MSG_DATABASE_CONNECTED });
+});
 
 app.get("/", (req, res) => {
-  res.json({ msg: "Hello World!" });
+  res.json({ message: "Hello World!" });
 });
 
 // Custom error handler

@@ -36,6 +36,11 @@ export default class User extends Model {
     name: {
       type: DataTypes.STRING(255),
       allowNull: true
+    },
+    avatar: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      defaultValue: "https:\/\/firebasestorage.googleapis.com\/v0\/b\/pate-shop.appspot.com\/o\/default-avatar.jpg?alt=media&token=47650302-c9be-41cd-bf8a-ba2e913efe19"
     }
   }, {
     sequelize,

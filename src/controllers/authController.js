@@ -1,7 +1,14 @@
-import { MSG_LOG_OUT_SUCCESSFULLY } from "../constants";
+import {
+  ERROR_SOMETHING_WENT_WRONG,
+  MSG_LOG_OUT_SUCCESSFULLY,
+} from "../constants";
 
-export const login = (req, res) => {
-  return res.json(req.user);
+export const login = (req, res, next) => {
+  if (!req.user) {
+    res.status(500);
+    throw new Error(ERROR_SOMETHING_WENT_WRONG);
+  }
+  return res.status(200).json(req.user);
 };
 
 export const logout = (req, res) => {
@@ -11,5 +18,5 @@ export const logout = (req, res) => {
     }
     return;
   });
-  return res.status(200).json({ msg: MSG_LOG_OUT_SUCCESSFULLY });
+  return res.status(200).json({ message: MSG_LOG_OUT_SUCCESSFULLY });
 };

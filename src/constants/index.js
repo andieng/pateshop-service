@@ -1,5 +1,7 @@
 // Error message
-export const ERROR_WRONG_CREDENTIALS = "Wrong username or password";
+export const ERROR_FAILED_CONNECTION = "Failed to create connection";
+export const ERROR_NOT_CONNECTED_TO_DB = "Not connected to any database";
+export const ERROR_SOMETHING_WENT_WRONG = "Something went wrong";
 export const ERROR_NOT_AUTHENTICATED = "Not Authenticated";
 export const ERROR_CATEGORY_NOT_FOUND = "Category does not exist";
 export const ERROR_PRODUCT_NOT_FOUND = "Product does not exist";
@@ -29,6 +31,7 @@ export const MSG_LOG_OUT_SUCCESSFULLY = "Log out successfully!";
 export const MSG_DELETE_SUCCESSFULLY = "Deleted";
 export const MSG_ADD_SUCCESSFULLY = "Added";
 export const MSG_UPDATE_SUCCESSFULLY = "Updated";
+export const MSG_DATABASE_CONNECTED = "Database connected";
 
 export const ERROR_PRODUCT_ID_NOT_FOUND = (productId) => {
   return `Product [${productId}] not found`;

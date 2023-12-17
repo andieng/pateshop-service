@@ -1,7 +1,6 @@
 import { Strategy as LocalStrategy } from "passport-local";
 import bcrypt from "bcrypt";
 import { User } from "../models";
-import { ERROR_WRONG_CREDENTIALS } from "../constants";
 
 export default passport = (passport) => {
   passport.serializeUser(function (user, done) {
@@ -31,17 +30,21 @@ export default passport = (passport) => {
           },
         })
           .then(function (user) {
+            if (!user) {
+              return done(null, false);
+            }
             bcrypt.compare(password, user.password, function (err, result) {
               if (err) {
                 return done(err);
               }
               if (!result) {
-                return done(null, false, { message: ERROR_WRONG_CREDENTIALS });
+                return done(null, false);
               }
               return done(null, {
                 userId: user.userId,
                 username: user.username,
                 name: user.name,
+                avatar: user.avatar,
               });
             });
           })

@@ -49,33 +49,57 @@ function initModels(sequelize) {
   };
 }
 
-const { PGHOST, PGDATABASE, PGUSER, PGPASSWORD } = process.env;
+let sequelize = null;
+let Category, Customer, OrderProduct, Order, Product, User;
+let currentHost, currentDatabase, currentUser, currentPassword, isConnected;
 
-const sequelize = new Sequelize({
-  host: PGHOST,
-  database: PGDATABASE,
-  username: PGUSER,
-  password: PGPASSWORD,
-  port: 5432,
-  dialect: "postgres",
-  dialectOptions: {
-    ssl: {
-      require: true,
+async function initializeConnection(host, database, username, password) {
+  currentHost = host;
+  currentDatabase = database;
+  currentUser = username;
+  currentPassword = password;
+
+  sequelize = new Sequelize({
+    host,
+    database,
+    username,
+    password,
+    port: 5432,
+    dialect: "postgres",
+    dialectOptions: {
+      ssl: {
+        require: true,
+      },
     },
-  },
-  dialectModule: pg,
-});
-
-sequelize
-  .authenticate()
-  .then(() => {
-    console.log("Sequelize connected");
-  })
-  .catch((err) => {
-    throw err;
+    dialectModule: pg,
   });
 
-export const { Category, Customer, OrderProduct, Order, Product, User } =
-  initModels(sequelize);
+  isConnected = false;
+  try {
+    await sequelize.authenticate();
+  } catch (err) {
+    return false;
+  }
+  isConnected = true;
+  console.info("Sequelize connected");
+  ({ Category, Customer, OrderProduct, Order, Product, User } =
+    initModels(sequelize));
+  return true;
+}
+
+export {
+  Category,
+  Customer,
+  OrderProduct,
+  Order,
+  Product,
+  User,
+  initializeConnection,
+  currentHost,
+  currentDatabase,
+  currentUser,
+  currentPassword,
+  isConnected,
+};
 
 export default sequelize;
