@@ -56,7 +56,7 @@ export const getReportDataInMonth = async (req, res) => {
   if (cost === 0 && revenue !== 0) {
     profit = 1;
   } else if (cost !== 0) {
-    profit = (revenue - cost) / cost;
+    profit = (revenue - cost) / revenue;
   }
 
   const data = {
