@@ -1,12 +1,12 @@
 import { Sequelize, Op } from "sequelize";
-import { Product, Order, OrderProduct, Customer } from "../models";
+import { Product, Order, OrderProduct, Customer, sequelize } from "../models";
 import {
-  ERROR_QUANTITY_NOT_ENOUGH,
   ERROR_ORDER_NOT_FOUND,
   ERROR_AT_LEAST_ONE_PRODUCT_IN_ORDER,
-  ERROR_PRODUCT_NOT_FOUND,
   ERROR_PRODUCT_ID_NOT_FOUND,
   ERROR_NOT_ENOUGH_PRODUCT,
+  ERROR_MONTH_OR_YEAR_INVALID,
+  ERROR_REQUIRE_MONTH_AND_YEAR,
 } from "../constants";
 
 export const getOrders = async (req, res) => {
@@ -340,3 +340,39 @@ async function computeTotalAmountOrder(orderId) {
 
   return totalAmount * (1 - order.orderDiscountRate);
 }
+
+export const countOrdersInMonth = async (req, res) => {
+  const { month: monthStr, year: yearStr } = req.query;
+
+  if (!monthStr || !yearStr) {
+    res.status(400);
+    throw new Error(ERROR_REQUIRE_MONTH_AND_YEAR);
+  }
+
+  const month = Number(monthStr),
+    year = Number(yearStr);
+  if (month < 1 || month > 12 || year < 1) {
+    res.status(400);
+    throw new Error(ERROR_MONTH_OR_YEAR_INVALID);
+  }
+
+  const result = await sequelize.query(`
+    select 
+      count(*) as count, 
+      extract(month from delivery_date) as month, 
+      extract(year from delivery_date) as year
+    from orders
+    where 
+      status = 'Completed'
+      and extract(month from delivery_date) = ${monthStr} 
+      and extract(year from delivery_date) = ${yearStr}
+    group by month, year`);
+
+  const data = {
+    count: result[0][0]?.count ? Number(result[0][0].count) : 0,
+    month,
+    year,
+  };
+
+  return res.json({ data });
+};

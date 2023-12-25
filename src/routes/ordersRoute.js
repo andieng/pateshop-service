@@ -5,10 +5,12 @@ import {
   deleteOrder,
   updateOrder,
   createOrder,
+  countOrdersInMonth,
 } from "../controllers/ordersController";
 const ordersRouter = express.Router();
 
 ordersRouter.get("/", getOrders);
+ordersRouter.get("/count", countOrdersInMonth);
 ordersRouter.get("/:orderId", getOrderDetails);
 ordersRouter.delete("/:orderId", deleteOrder);
 ordersRouter.put("/:orderId", updateOrder);

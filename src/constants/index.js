@@ -25,6 +25,9 @@ export const ERROR_ORDER_NOT_FOUND = "Order not found";
 export const ERROR_CUSTOMER_NOT_FOUND = "Customer not found";
 export const ERROR_AT_LEAST_ONE_PRODUCT_IN_ORDER =
   "At least one product to create order";
+export const ERROR_REQUIRE_MONTH_AND_YEAR =
+  "Require month and year in the input data";
+export const ERROR_MONTH_OR_YEAR_INVALID = "Month or year is invalid";
 
 // Successful message
 export const MSG_LOG_OUT_SUCCESSFULLY = "Log out successfully!";

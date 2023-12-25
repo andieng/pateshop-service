@@ -49,7 +49,7 @@ function initModels(sequelize) {
   };
 }
 
-let sequelize = null;
+let sequelize;
 let Category, Customer, OrderProduct, Order, Product, User;
 let currentHost, currentDatabase, currentUser, currentPassword, isConnected;
 
@@ -100,6 +100,5 @@ export {
   currentUser,
   currentPassword,
   isConnected,
+  sequelize,
 };
-
-export default sequelize;

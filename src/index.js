@@ -21,6 +21,7 @@ import {
   currentUser,
   currentPassword,
 } from "./models";
+import reportsRouter from "./routes/reportsRoute";
 
 const app = express();
 
@@ -55,6 +56,7 @@ app.use(
   customersRouter
 );
 app.use("/api/products", checkConnection, checkAuthentication, productsRouter);
+app.use("/api/reports", checkConnection, checkAuthentication, reportsRouter);
 
 app.post("/api/connect", async (req, res) => {
   const { pgServer, pgDatabase, pgUsername, pgPassword } = req.body;

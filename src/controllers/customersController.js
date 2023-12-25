@@ -1,6 +1,9 @@
-import { Op } from "sequelize";
-import { Customer, Order } from "../models";
-import { ERROR_CUSTOMER_NOT_FOUND } from "../constants";
+import { Customer, Order, sequelize } from "../models";
+import {
+  ERROR_CUSTOMER_NOT_FOUND,
+  ERROR_REQUIRE_MONTH_AND_YEAR,
+  ERROR_MONTH_OR_YEAR_INVALID,
+} from "../constants";
 
 export const getCustomers = async (req, res) => {
   const { limit, offset } = req.query;
@@ -106,4 +109,39 @@ export const updateCustomer = async (req, res) => {
   await customer.save();
 
   return res.json(customer);
+};
+
+export const countCustomersInMonth = async (req, res) => {
+  const { month: monthStr, year: yearStr } = req.query;
+
+  if (!monthStr || !yearStr) {
+    res.status(400);
+    throw new Error(ERROR_REQUIRE_MONTH_AND_YEAR);
+  }
+
+  const month = Number(monthStr),
+    year = Number(yearStr);
+  if (month < 1 || month > 12 || year < 1) {
+    res.status(400);
+    throw new Error(ERROR_MONTH_OR_YEAR_INVALID);
+  }
+
+  const result = await sequelize.query(`
+    select 
+      count(*) as count, 
+      extract(month from created_at) as month, 
+      extract(year from created_at) as year
+    from customers
+    where 
+      extract(month from created_at) = ${monthStr} 
+      and extract(year from created_at) = ${yearStr}
+    group by month, year`);
+
+  const data = {
+    count: result[0][0]?.count ? Number(result[0][0].count) : 0,
+    month,
+    year,
+  };
+
+  return res.json({ data });
 };
