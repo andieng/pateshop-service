@@ -1,5 +1,9 @@
 import { Sequelize } from "sequelize";
-import { Product } from "../models";
+import { Product, sequelize } from "../models";
+import {
+  ERROR_MONTH_OR_YEAR_INVALID,
+  ERROR_REQUIRE_MONTH_AND_YEAR,
+} from "../constants";
 
 export const getProducts = async (req, res) => {
   const { limit, offset } = req.query;
@@ -122,4 +126,53 @@ export const searchProductsByPriceRange = async (req, res) => {
   };
 
   return res.json(result);
+};
+
+export const getTopSellingProductsInMonth = async (req, res) => {
+  const { month: monthStr, year: yearStr } = req.query;
+
+  if (!monthStr || !yearStr) {
+    res.status(400);
+    throw new Error(ERROR_REQUIRE_MONTH_AND_YEAR);
+  }
+
+  const month = Number(monthStr),
+    year = Number(yearStr);
+  if (month < 1 || month > 12 || year < 1) {
+    res.status(400);
+    throw new Error(ERROR_MONTH_OR_YEAR_INVALID);
+  }
+
+  const result = await sequelize.query(`
+    select 
+      products.product_id as "productId", 
+      products.image as "productImage",
+      products.product_name as "productName",
+      products.price,
+      sum(order_product.quantity) as "totalSold"
+    from 
+      order_product 
+        join orders on order_product.order_id = orders.order_id
+        join products on order_product.product_id = products.product_id
+    where 
+      orders.status = 'Completed'
+      and extract(month from delivery_date) = ${monthStr}
+      and extract(year from delivery_date) = ${yearStr}
+    group by "productId"
+    order by "totalSold" desc
+    limit 6
+  `);
+  const products = result[0].map((item) => ({
+    ...item,
+    price: Number(item.price),
+    totalSold: Number(item.totalSold),
+  }));
+
+  const data = {
+    products,
+    month,
+    year,
+  };
+
+  return res.json({ data });
 };
