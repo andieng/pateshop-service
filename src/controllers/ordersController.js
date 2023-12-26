@@ -7,6 +7,8 @@ import {
   ERROR_NOT_ENOUGH_PRODUCT,
   ERROR_MONTH_OR_YEAR_INVALID,
   ERROR_REQUIRE_MONTH_AND_YEAR,
+  ERROR_REQUIRE_YEAR,
+  ERROR_YEAR_INVALID,
 } from "../constants";
 
 export const getOrders = async (req, res) => {
@@ -373,6 +375,39 @@ export const countOrdersInMonth = async (req, res) => {
     month,
     year,
   };
+
+  return res.json({ data });
+};
+
+export const getOrderAnalytics = async (req, res) => {
+  const { year: yearStr } = req.query;
+
+  if (!yearStr) {
+    res.status(400);
+    throw new Error(ERROR_REQUIRE_YEAR);
+  }
+
+  const year = Number(yearStr);
+  if (year < 1) {
+    res.status(400);
+    throw new Error(ERROR_YEAR_INVALID);
+  }
+
+  const result = await sequelize.query(`
+    select 
+      count(*) as count,  
+      extract(month from delivery_date) as month
+    from orders
+    where 
+      status = 'Completed'
+      and extract(year from delivery_date) = ${yearStr}
+    group by month`);
+
+  const data = result[0].map((item) => ({
+    count: Number(item.count),
+    month: Number(item.month),
+    year,
+  }));
 
   return res.json({ data });
 };
