@@ -15,6 +15,11 @@ import {
 
 const categoriesRouter = express.Router();
 
+categoriesRouter.get(
+  "/:categoryId/products/filter",
+  searchProductsByPriceRange
+);
+
 categoriesRouter.get("/", getCategories);
 categoriesRouter.get("/:categoryId", getProductsOfCategory);
 categoriesRouter.post("/", addCategory);
@@ -27,10 +32,5 @@ categoriesRouter.get("/:categoryId/products/:productId", getProduct);
 categoriesRouter.post("/:categoryId/products", addProduct);
 categoriesRouter.put("/:categoryId/products/:productId", updateProduct);
 categoriesRouter.delete("/:categoryId/products/:productId", deleteProduct);
-
-categoriesRouter.get(
-  "/:categoryId/products/filter",
-  searchProductsByPriceRange
-);
 
 export default categoriesRouter;

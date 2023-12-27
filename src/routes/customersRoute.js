@@ -5,10 +5,12 @@ import {
   deleteCustomer,
   updateCustomer,
   countCustomersInMonth,
+  searchCustomersByName,
 } from "../controllers/customersController";
 
 const customersRouter = express.Router();
 
+customersRouter.get("/search", searchCustomersByName);
 customersRouter.get("/", getCustomers);
 customersRouter.get("/count", countCustomersInMonth);
 customersRouter.put("/:customerId", updateCustomer);

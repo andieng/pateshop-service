@@ -1,3 +1,4 @@
+import { Sequelize } from "sequelize";
 import { Customer, Order, sequelize } from "../models";
 import {
   ERROR_CUSTOMER_NOT_FOUND,
@@ -144,4 +145,45 @@ export const countCustomersInMonth = async (req, res) => {
   };
 
   return res.json({ data });
+};
+
+export const searchCustomersByName = async (req, res) => {
+  const { q, limit, offset } = req.query;
+
+  const numLimit = limit ? Number(limit) : 100;
+  const numOffset = offset ? Number(offset) : 0;
+
+  const customers = await Customer.findAll({
+    where: {
+      customerName: {
+        [Sequelize.Op.iLike]: `%${q}%`,
+      },
+    },
+    limit: numLimit,
+    offset: numOffset,
+  });
+
+  const totalCustomers = await Customer.count({
+    where: {
+      customerName: {
+        [Sequelize.Op.iLike]: `%${q}%`,
+      },
+    },
+  });
+
+  const isNext = numOffset + customers.length < totalCustomers;
+  const isPre = numOffset > 0;
+
+  const result = {
+    data: customers,
+    paging: {
+      offset: numOffset,
+      limit: numLimit,
+      totalPages: Math.ceil(totalCustomers / numLimit),
+      isNext,
+      isPre,
+    },
+  };
+
+  return res.json(result);
 };
