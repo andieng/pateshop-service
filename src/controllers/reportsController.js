@@ -319,6 +319,8 @@ export const getProfitAndRevenue = async (req, res) => {
     result = getFullDateRangeList(profitAndRevenue[0], startDate, endDate);
   } else if (option === "monthly") {
     result = getFullMonthList(profitAndRevenue[0]);
+  } else if (option === "yearly") {
+    result = profitAndRevenue[0];
   }
   return res.json({ result });
 };
