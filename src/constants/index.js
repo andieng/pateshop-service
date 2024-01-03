@@ -30,6 +30,11 @@ export const ERROR_REQUIRE_MONTH_AND_YEAR =
 export const ERROR_MONTH_OR_YEAR_INVALID = "Month or year is invalid";
 export const ERROR_REQUIRE_YEAR = "Require year in query string";
 export const ERROR_YEAR_INVALID = "Year is invalid";
+export const ERROR_DATE_INVALID = "Date must be in the format of mm-dd-yyyy";
+export const ERROR_MONTH_INVALID = "Month is invalid";
+export const ERROR_DATE_RANGE_INVALID =
+  "Start date must be smaller than End date";
+export const ERROR_OPTION_INVALID = "No options found";
 
 // Successful message
 export const MSG_LOG_OUT_SUCCESSFULLY = "Log out successfully!";
