@@ -8,7 +8,7 @@ import {
   ERROR_REQUIRE_MONTH_AND_YEAR,
   ERROR_YEAR_INVALID,
 } from "../constants";
-import { Category, sequelize } from "../models";
+import { Category, Product, sequelize } from "../models";
 
 export const getReportDataInMonth = async (req, res) => {
   const { month: monthStr, year: yearStr } = req.query;
@@ -126,20 +126,20 @@ export const getNumberOfSoldProducts = async (req, res) => {
 
   if (option === "daily") {
     dateCondition = `AND DATE(o.delivery_date) BETWEEN '${startDate}' AND '${endDate}'`;
-    groupBy = "GROUP BY p.product_name";
+    groupBy = "GROUP BY p.product_id";
   } else if (option === "monthly") {
     dateCondition = `AND EXTRACT(YEAR FROM o.delivery_date) = ${year}`;
-    groupBy = "GROUP BY p.product_name";
+    groupBy = "GROUP BY p.product_id";
   } else if (option === "yearly") {
     dateCondition = "";
-    groupBy = "GROUP BY p.product_name";
+    groupBy = "GROUP BY p.product_id";
   } else {
     res.status(400);
     throw new Error(ERROR_OPTION_INVALID);
   }
 
   const query = `
-    SELECT p.product_name, SUM(op.quantity) AS total_quantity_sold
+    SELECT p.product_id, p.product_name, SUM(op.quantity) AS total_quantity_sold
     FROM order_product op
     JOIN products p ON op.product_id = p.product_id
     JOIN orders o ON op.order_id = o.order_id
@@ -150,7 +150,30 @@ export const getNumberOfSoldProducts = async (req, res) => {
   `;
 
   const totalQuantitySold = await sequelize.query(query);
+
+  const productQuery = `
+    SELECT product_id, product_name
+    FROM products
+    WHERE category_id = ${categoryId};
+  `;
+
+  const products = await sequelize.query(productQuery);
+
   const result = totalQuantitySold[0];
+
+  let missingProducts = products[0].filter(
+    (product) => !result.some((sold) => sold.product_id === product.product_id)
+  );
+
+  missingProducts.forEach((product) => {
+    result.push({
+      product_id: product.product_id,
+      product_name: product.product_name,
+      total_quantity_sold: "0",
+    });
+  });
+
+  result.sort((a, b) => a.product_id - b.product_id);
 
   return res.json({ totalQuantitySold: result });
 };
