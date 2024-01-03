@@ -158,10 +158,8 @@ export const getNumberOfSoldProducts = async (req, res) => {
 const getFullDateRangeList = (data, _startDate, _endDate) => {
   let dateRange = [];
   let startDate = new Date(_startDate);
-  startDate.setDate(startDate.getDate() + 1);
   let endDate = new Date(_endDate);
   let currentDate = new Date(startDate);
-  endDate.setDate(endDate.getDate() + 1);
 
   while (currentDate <= endDate) {
     let isoDate = currentDate.toISOString().slice(0, 10);
