@@ -155,6 +155,72 @@ export const getNumberOfSoldProducts = async (req, res) => {
   return res.json({ totalQuantitySold: result });
 };
 
+const getFullDateRangeList = (data, _startDate, _endDate) => {
+  let dateRange = [];
+  let startDate = new Date(_startDate);
+  startDate.setDate(startDate.getDate() + 1);
+  let endDate = new Date(_endDate);
+  let currentDate = new Date(startDate);
+  endDate.setDate(endDate.getDate() + 1);
+
+  while (currentDate <= endDate) {
+    let isoDate = currentDate.toISOString().slice(0, 10);
+    dateRange.push(isoDate);
+    currentDate.setDate(currentDate.getDate() + 1);
+  }
+
+  dateRange.forEach((date) => {
+    let found = data.some((item) => item.date === date);
+    if (!found) {
+      data.push({ date: date, revenue: "0", profit: "0" });
+    }
+  });
+
+  data.sort((a, b) => (a.date > b.date ? 1 : -1));
+
+  return data;
+};
+
+const getFullMonthList = (data) => {
+  const yearData = {};
+
+  data.forEach((entry) => {
+    const year = entry.year;
+    if (!yearData[year]) {
+      yearData[year] = {};
+    }
+    yearData[year][entry.month] = {
+      revenue: entry.revenue,
+      profit: entry.profit,
+    };
+  });
+
+  for (const year in yearData) {
+    for (let month = 1; month <= 12; month++) {
+      if (!yearData[year][month]) {
+        yearData[year][month] = {
+          revenue: "0",
+          profit: "0",
+        };
+      }
+    }
+  }
+
+  const updatedData = [];
+  for (const year in yearData) {
+    for (let month = 1; month <= 12; month++) {
+      updatedData.push({
+        year: year,
+        month: month.toString(),
+        revenue: yearData[year][month].revenue,
+        profit: yearData[year][month].profit,
+      });
+    }
+  }
+
+  return updatedData;
+};
+
 export const getProfitAndRevenue = async (req, res) => {
   const { option, startDate, endDate, year, month } = req.query;
 
@@ -250,6 +316,11 @@ export const getProfitAndRevenue = async (req, res) => {
   }
 
   const profitAndRevenue = await sequelize.query(query);
-  const result = profitAndRevenue[0];
+  let result = {};
+  if (option === "daily") {
+    result = getFullDateRangeList(profitAndRevenue[0], startDate, endDate);
+  } else if (option === "monthly") {
+    result = getFullMonthList(profitAndRevenue[0]);
+  }
   return res.json({ result });
 };
